@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const https = require('https');
+const zlib = require('zlib');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -237,6 +238,177 @@ app.post('/api/settings', (req, res) => {
   res.json({ success: true, openscadPath: formattedPath });
 });
 
+// -----------------------------------------------------------------------
+// STL / 3MF helpers
+// -----------------------------------------------------------------------
+
+// CRC32 lookup table (needed for ZIP / 3MF creation)
+const CRC32_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let j = 0; j < 8; j++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[i] = c;
+  }
+  return t;
+})();
+
+function crc32(buf) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) c = (c >>> 8) ^ CRC32_TABLE[(c ^ buf[i]) & 0xFF];
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+// Merge two binary STL buffers into a single binary STL
+function mergeBinarySTLs(buf1, buf2) {
+  const c1 = buf1.readUInt32LE(80);
+  const c2 = buf2.readUInt32LE(80);
+  const out = Buffer.alloc(84 + (c1 + c2) * 50);
+  Buffer.from('Binary STL - Criador de Chaveiros 3D').copy(out, 0);
+  out.writeUInt32LE(c1 + c2, 80);
+  buf1.copy(out, 84, 84, 84 + c1 * 50);
+  buf2.copy(out, 84 + c1 * 50, 84, 84 + c2 * 50);
+  return out;
+}
+
+// Parse binary STL → { vertices: [[x,y,z],...], triangles: [[i,j,k],...] }
+function parseBinarySTL(buf) {
+  const n = buf.readUInt32LE(80);
+  const vertices = [];
+  const triangles = [];
+  for (let i = 0; i < n; i++) {
+    const off = 84 + i * 50;
+    const b = vertices.length;
+    vertices.push(
+      [buf.readFloatLE(off + 12), buf.readFloatLE(off + 16), buf.readFloatLE(off + 20)],
+      [buf.readFloatLE(off + 24), buf.readFloatLE(off + 28), buf.readFloatLE(off + 32)],
+      [buf.readFloatLE(off + 36), buf.readFloatLE(off + 40), buf.readFloatLE(off + 44)]
+    );
+    triangles.push([b, b + 1, b + 2]);
+  }
+  return { vertices, triangles };
+}
+
+// Build a minimal valid ZIP buffer from an array of { name, data (Buffer) }
+function buildZipBuffer(files) {
+  const entries = [];
+  let offset = 0;
+
+  for (const file of files) {
+    const nameBytes = Buffer.from(file.name, 'utf8');
+    const compressed = zlib.deflateRawSync(file.data);
+    const checksum = crc32(file.data);
+
+    const lhdr = Buffer.alloc(30 + nameBytes.length);
+    lhdr.writeUInt32LE(0x04034b50, 0);
+    lhdr.writeUInt16LE(20, 4);
+    lhdr.writeUInt16LE(0, 6);
+    lhdr.writeUInt16LE(8, 8);          // DEFLATE
+    lhdr.writeUInt16LE(0, 10);
+    lhdr.writeUInt16LE(0, 12);
+    lhdr.writeUInt32LE(checksum, 14);
+    lhdr.writeUInt32LE(compressed.length, 18);
+    lhdr.writeUInt32LE(file.data.length, 22);
+    lhdr.writeUInt16LE(nameBytes.length, 26);
+    lhdr.writeUInt16LE(0, 28);
+    nameBytes.copy(lhdr, 30);
+
+    entries.push({ lhdr, compressed, nameBytes, checksum, uncompressed: file.data.length, offset });
+    offset += lhdr.length + compressed.length;
+  }
+
+  const cdParts = entries.map(e => {
+    const cd = Buffer.alloc(46 + e.nameBytes.length);
+    cd.writeUInt32LE(0x02014b50, 0);
+    cd.writeUInt16LE(20, 4); cd.writeUInt16LE(20, 6);
+    cd.writeUInt16LE(0, 8); cd.writeUInt16LE(8, 10);
+    cd.writeUInt16LE(0, 12); cd.writeUInt16LE(0, 14);
+    cd.writeUInt32LE(e.checksum, 16);
+    cd.writeUInt32LE(e.compressed.length, 20);
+    cd.writeUInt32LE(e.uncompressed, 24);
+    cd.writeUInt16LE(e.nameBytes.length, 28);
+    cd.writeUInt16LE(0, 30); cd.writeUInt16LE(0, 32);
+    cd.writeUInt16LE(0, 34); cd.writeUInt16LE(0, 36);
+    cd.writeUInt32LE(0, 38); cd.writeUInt32LE(e.offset, 42);
+    e.nameBytes.copy(cd, 46);
+    return cd;
+  });
+
+  const cdSize = cdParts.reduce((s, p) => s + p.length, 0);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(0, 4); eocd.writeUInt16LE(0, 6);
+  eocd.writeUInt16LE(entries.length, 8);
+  eocd.writeUInt16LE(entries.length, 10);
+  eocd.writeUInt32LE(cdSize, 12);
+  eocd.writeUInt32LE(offset, 16);
+  eocd.writeUInt16LE(0, 20);
+
+  const parts = [];
+  for (const e of entries) parts.push(e.lhdr, e.compressed);
+  for (const cd of cdParts) parts.push(cd);
+  parts.push(eocd);
+  return Buffer.concat(parts);
+}
+
+// Build a slicer-compatible 3MF buffer from two STL buffers (base + text)
+function build3MFBuffer(baseBuf, textBuf) {
+  const buildObjectXml = (id, mesh) => {
+    const rows = [
+      `    <object id="${id}" type="model">`,
+      `      <mesh>`,
+      `        <vertices>`
+    ];
+    for (const [x, y, z] of mesh.vertices)
+      rows.push(`          <vertex x="${x.toFixed(6)}" y="${y.toFixed(6)}" z="${z.toFixed(6)}"/>`);
+    rows.push(`        </vertices>`, `        <triangles>`);
+    for (const [v1, v2, v3] of mesh.triangles)
+      rows.push(`          <triangle v1="${v1}" v2="${v2}" v3="${v3}"/>`);
+    rows.push(`        </triangles>`, `      </mesh>`, `    </object>`);
+    return rows.join('\n');
+  };
+
+  const base = parseBinarySTL(baseBuf);
+  const text = parseBinarySTL(textBuf);
+
+  const model = Buffer.from([
+    `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">`,
+    `  <resources>`,
+    buildObjectXml(1, base),
+    buildObjectXml(2, text),
+    `  </resources>`,
+    `  <build>`,
+    `    <item objectid="1"/>`,
+    `    <item objectid="2"/>`,
+    `  </build>`,
+    `</model>`
+  ].join('\n'));
+
+  const contentTypes = Buffer.from(
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n` +
+    `  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\n` +
+    `  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>\n` +
+    `</Types>`
+  );
+
+  const rels = Buffer.from(
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n` +
+    `  <Relationship Id="rel0" Target="/3D/3dmodel.model" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>\n` +
+    `</Relationships>`
+  );
+
+  return buildZipBuffer([
+    { name: '[Content_Types].xml', data: contentTypes },
+    { name: '_rels/.rels',         data: rels },
+    { name: '3D/3dmodel.model',    data: model }
+  ]);
+}
+
+// -----------------------------------------------------------------------
+
 // Helper for executing command as a Promise
 function execAsync(cmd, options) {
   return new Promise((resolve, reject) => {
@@ -413,11 +585,16 @@ app.post('/api/render', async (req, res) => {
 
     const env = { ...process.env, OPENSCAD_FONT_PATH: FONTS_DIR };
 
-    // Run core compilations in parallel
-    await Promise.all([
+    // Run core compilations in parallel and wait for all to settle to prevent orphaned unhandled rejections
+    const compileResults = await Promise.allSettled([
       execAsync(baseCommand, { env }),
       execAsync(textCommand, { env })
     ]);
+
+    const rejected = compileResults.filter(r => r.status === 'rejected');
+    if (rejected.length > 0) {
+      throw rejected[0].reason;
+    }
 
     // Clean up temporary SCAD files
     [tempScadPathBase, tempScadPathText].forEach(p => {
@@ -446,7 +623,8 @@ app.post('/api/render', async (req, res) => {
   }
 });
 
-// Compile and Download combined STL or 3MF on-demand
+// Compile and Download — compiles base + text separately (same as render, high quality)
+// then merges them: STL via binary concat, 3MF via a proper ZIP/XML container.
 app.post('/api/compile-download', async (req, res) => {
   const config = loadConfig();
   const openscadExecutable = config.openscadPath;
@@ -459,64 +637,98 @@ app.post('/api/compile-download', async (req, res) => {
   if (!format || !fileId) {
     return res.status(400).json({ error: 'Formato ou ID do arquivo inválidos.' });
   }
+  if (format !== 'stl' && format !== '3mf') {
+    return res.status(400).json({ error: 'Formato desconhecido. Use "stl" ou "3mf".' });
+  }
 
-  // Force lowResolution = false for high-quality production download files
   const params = { ...restParams, lowResolution: false };
 
-  // Read template
-  let templateContent = '';
-  try {
-    templateContent = fs.readFileSync(TEMPLATE_SCAD, 'utf8');
-  } catch (err) {
-    return res.status(500).json({ error: 'Não foi possível ler o modelo.' });
-  }
+  const safeText = (params.Line1_Text || 'personalizado')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-zA-Z0-9_\-\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '_') || 'personalizado';
+  const downloadFilename = `chaveiro_${safeText}.${format}`;
 
-  let codeStartIdx = -1;
-  const modelMatch = templateContent.match(/^\/\/\s*MODEL\s*$/m);
-  if (modelMatch) {
-    codeStartIdx = modelMatch.index;
-  } else {
-    codeStartIdx = templateContent.indexOf('module generateBackPlateWithHole');
-  }
-
-  const moduleCode = templateContent.substring(codeStartIdx);
-  const tempScadPathAll = path.join(TEMP_DIR, `${fileId}_all.scad`);
+  // High-quality STL paths (separate from preview which uses _base/_text)
+  const hqBasePath = path.join(TEMP_DIR, `${fileId}_hq_base.stl`);
+  const hqTextPath = path.join(TEMP_DIR, `${fileId}_hq_text.stl`);
   const env = { ...process.env, OPENSCAD_FONT_PATH: FONTS_DIR };
 
+  const scadBase = path.join(TEMP_DIR, `${fileId}_hq_base.scad`);
+  const scadText = path.join(TEMP_DIR, `${fileId}_hq_text.scad`);
+
   try {
-    await fs.promises.writeFile(tempScadPathAll, generateScadContent('all', params, moduleCode), 'utf8');
-
-    if (format === 'stl') {
-      const tempCombinedStlPath = path.join(TEMP_DIR, `${fileId}_completo.stl`);
-      const combinedCommand = `"${openscadExecutable}" -o "${tempCombinedStlPath}" "${tempScadPathAll}"`;
-      
-      await execAsync(combinedCommand, { env });
-      fs.unlink(tempScadPathAll, () => {});
-
-      if (!fs.existsSync(tempCombinedStlPath)) {
-        throw new Error('Falha ao compilar o STL unificado.');
+    // Only recompile if high-quality STLs are not cached yet
+    if (!fs.existsSync(hqBasePath) || !fs.existsSync(hqTextPath)) {
+      let templateContent;
+      try {
+        templateContent = fs.readFileSync(TEMPLATE_SCAD, 'utf8');
+      } catch {
+        return res.status(500).json({ error: 'Não foi possível ler o modelo.' });
       }
-      res.json({ success: true, downloadUrl: `/api/download?fileId=${fileId}&format=stl&text=${encodeURIComponent(params.Line1_Text)}` });
 
-    } else if (format === '3mf') {
-      const temp3mfPath = path.join(TEMP_DIR, `${fileId}.3mf`);
-      const threeMfCommand = `"${openscadExecutable}" -o "${temp3mfPath}" "${tempScadPathAll}"`;
-      
-      await execAsync(threeMfCommand, { env });
-      fs.unlink(tempScadPathAll, () => {});
-
-      if (!fs.existsSync(temp3mfPath)) {
-        throw new Error('Falha ao compilar o arquivo 3MF.');
+      let codeStartIdx = -1;
+      const modelMatch = templateContent.match(/^\/\/\s*MODEL\s*$/m);
+      if (modelMatch) {
+        codeStartIdx = modelMatch.index;
+      } else {
+        codeStartIdx = templateContent.indexOf('module generateBackPlateWithHole');
       }
-      res.json({ success: true, downloadUrl: `/api/download?fileId=${fileId}&format=3mf&text=${encodeURIComponent(params.Line1_Text)}` });
-    } else {
-      res.status(400).json({ error: 'Formato desconhecido.' });
+      const moduleCode = templateContent.substring(codeStartIdx);
+
+      await Promise.all([
+        fs.promises.writeFile(scadBase, generateScadContent('base', params, moduleCode), 'utf8'),
+        fs.promises.writeFile(scadText, generateScadContent('text', params, moduleCode), 'utf8')
+      ]);
+
+      const results = await Promise.allSettled([
+        execAsync(`"${openscadExecutable}" -o "${hqBasePath}" "${scadBase}"`, { env }),
+        execAsync(`"${openscadExecutable}" -o "${hqTextPath}" "${scadText}"`, { env })
+      ]);
+
+      [scadBase, scadText].forEach(p => fs.unlink(p, () => {}));
+
+      for (const r of results) {
+        if (r.status === 'rejected') console.error('OpenSCAD error:', r.reason?.stderr);
+      }
     }
+
+    if (!fs.existsSync(hqBasePath) || !fs.existsSync(hqTextPath)) {
+      return res.status(500).json({ error: 'Falha ao compilar os componentes do chaveiro.' });
+    }
+
+    const [baseBuf, textBuf] = await Promise.all([
+      fs.promises.readFile(hqBasePath),
+      fs.promises.readFile(hqTextPath)
+    ]);
+
+    // Validate: a binary STL needs at least header (80) + count (4) + 1 triangle (50) = 134 bytes
+    if (baseBuf.length < 134 || textBuf.length < 134) {
+      return res.status(500).json({
+        error: 'OpenSCAD gerou geometria vazia. Verifique se o texto está preenchido e a fonte está disponível.'
+      });
+    }
+
+    const outputBuf = format === 'stl'
+      ? mergeBinarySTLs(baseBuf, textBuf)
+      : build3MFBuffer(baseBuf, textBuf);
+
+    res.setHeader('Content-Disposition', `attachment; filename="${downloadFilename}"`);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Length', outputBuf.length);
+    res.end(outputBuf);
 
   } catch (err) {
     console.error('Download compilation error:', err);
-    fs.unlink(tempScadPathAll, () => {});
-    res.status(500).json({ error: 'Erro ao compilar o arquivo para download.', details: err.message });
+    [scadBase, scadText].forEach(p => fs.unlink(p, () => {}));
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: 'Erro ao compilar o arquivo para download.',
+        details: err.message || String(err)
+      });
+    }
   }
 });
 

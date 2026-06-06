@@ -6,8 +6,6 @@
 const state = {
   currentBaseUrl: null,
   currentTextUrl: null,
-  currentCombinedUrl: null,
-  current3mfUrl: null,
   fileId: null,
   openscadConnected: false,
   renderingInProgress: false,
@@ -433,11 +431,7 @@ async function renderModel(lowResolution = false) {
     state.currentBaseUrl = data.baseUrl;
     state.currentTextUrl = data.textUrl;
     state.fileId = data.fileId;
-    
-    // Clear cached download URLs to force fresh on-demand compilation when options change
-    state.currentCombinedUrl = null;
-    state.current3mfUrl = null;
-    
+
     // Enable buttons - downloads will be compiled on demand when clicked
     elements.btnDownload.disabled = false;
     elements.btnDownload3mf.disabled = false;
@@ -566,98 +560,63 @@ function updateTextMeshMaterial() {
   }
 }
 
-async function downloadSTL() {
+async function downloadFile(format) {
   if (!state.fileId) return;
-  
-  const btn = elements.btnDownload;
+
+  const btn = format === 'stl' ? elements.btnDownload : elements.btnDownload3mf;
   const originalHtml = btn.innerHTML;
-  
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+
   try {
-    if (!state.currentCombinedUrl) {
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
-      
-      const params = getParameters(false); // Force high quality settings for download
-      const response = await fetch('/api/compile-download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          format: 'stl',
-          fileId: state.fileId,
-          ...params
-        })
-      });
-      
+    const params = getParameters(false);
+    const response = await fetch('/api/compile-download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ format, fileId: state.fileId, ...params })
+    });
+
+    if (!response.ok) {
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Erro ao compilar o arquivo STL.');
-      }
-      
-      state.currentCombinedUrl = data.downloadUrl;
+      throw new Error(data.error || `Erro ao compilar o arquivo ${format.toUpperCase()}.`);
     }
+
+    // Use blob URL for reliable cross-browser download
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
     
-    // Trigger file download
+    // Sanitize the text to create a safe Windows filename
+    const cleanText = (elements.Line1_Text.value || 'personalizado')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // remove accents
+      .replace(/[^a-zA-Z0-9_\-\s]/g, '') // remove invalid filename characters
+      .trim()
+      .replace(/\s+/g, '_'); // replace spaces with underscores
+    
+    const filename = `chaveiro_${cleanText || 'personalizado'}.${format}`;
     const link = document.createElement('a');
-    link.href = state.currentCombinedUrl;
-    link.download = `chaveiro_${elements.Line1_Text.value || 'personalizado'}.stl`;
+    link.href = blobUrl;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+
   } catch (err) {
-    console.error('Error downloading STL:', err);
-    alert(`Erro ao gerar o arquivo STL:\n${err.message}`);
+    console.error(`Error downloading ${format.toUpperCase()}:`, err);
+    alert(`Erro ao gerar o arquivo ${format.toUpperCase()}:\n${err.message}`);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalHtml;
   }
 }
 
+async function downloadSTL() {
+  return downloadFile('stl');
+}
+
 async function download3MF() {
-  if (!state.fileId) return;
-  
-  const btn = elements.btnDownload3mf;
-  const originalHtml = btn.innerHTML;
-  
-  try {
-    if (!state.current3mfUrl) {
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
-      
-      const params = getParameters(false); // Force high quality settings for download
-      const response = await fetch('/api/compile-download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          format: '3mf',
-          fileId: state.fileId,
-          ...params
-        })
-      });
-      
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Erro ao compilar o arquivo 3MF.');
-      }
-      
-      state.current3mfUrl = data.downloadUrl;
-    }
-    
-    // Trigger file download
-    const link = document.createElement('a');
-    link.href = state.current3mfUrl;
-    link.download = `chaveiro_${elements.Line1_Text.value || 'personalizado'}.3mf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-  } catch (err) {
-    console.error('Error downloading 3MF:', err);
-    alert(`Erro ao gerar o arquivo 3MF:\n${err.message}`);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalHtml;
-  }
+  return downloadFile('3mf');
 }
 
 
