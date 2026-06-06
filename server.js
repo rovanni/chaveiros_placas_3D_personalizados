@@ -580,8 +580,8 @@ app.post('/api/render', async (req, res) => {
     ]);
 
     // Build compilation commands
-    const baseCommand = `"${openscadExecutable}" -o "${tempBaseStlPath}" "${tempScadPathBase}"`;
-    const textCommand = `"${openscadExecutable}" -o "${tempTextStlPath}" "${tempScadPathText}"`;
+    const baseCommand = `"${openscadExecutable}" --export-format binstl -o "${tempBaseStlPath}" "${tempScadPathBase}"`;
+    const textCommand = `"${openscadExecutable}" --export-format binstl -o "${tempTextStlPath}" "${tempScadPathText}"`;
 
     const env = { ...process.env, OPENSCAD_FONT_PATH: FONTS_DIR };
 
@@ -684,8 +684,8 @@ app.post('/api/compile-download', async (req, res) => {
       ]);
 
       const results = await Promise.allSettled([
-        execAsync(`"${openscadExecutable}" -o "${hqBasePath}" "${scadBase}"`, { env }),
-        execAsync(`"${openscadExecutable}" -o "${hqTextPath}" "${scadText}"`, { env })
+        execAsync(`"${openscadExecutable}" --export-format binstl -o "${hqBasePath}" "${scadBase}"`, { env }),
+        execAsync(`"${openscadExecutable}" --export-format binstl -o "${hqTextPath}" "${scadText}"`, { env })
       ]);
 
       [scadBase, scadText].forEach(p => fs.unlink(p, () => {}));
