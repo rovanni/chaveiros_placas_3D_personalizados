@@ -39,6 +39,12 @@ Hole_Radius         = 3;
 Ring_Offset         = 0;
 Hole_Height_Offset  = 0;
 
+// MEASURED BOUNDS (PASSED FROM FRONTEND)
+Text_Left_Bound     = 0;
+Text_Right_Bound    = 0;
+Text_Center_X       = 0;
+Text_Width          = 0;
+
 // LINE SPACING
 Spacing_L2          = 1.1;   // [0.5:0.1:2]
 Spacing_L3          = 1.1;   // [0.5:0.1:2]
@@ -147,8 +153,14 @@ module generateTextShape() {
 // Centro vertical do texto (baseline=0, topo≈Font_Size_L1)
 function textCenterY() = Font_Size_L1 * 0.5;
 
-// Estimativa da borda direita do texto (caract. × fator × tamanho)
-function textRightEdge() = Font_Size_L1 * max(len(Line1_Text), 1) * 0.55;
+// Estimativa/Medição da borda esquerda do texto
+function textLeftEdge() = (Text_Right_Bound != 0) ? Text_Left_Bound : 0;
+
+// Estimativa/Medição da borda direita do texto
+function textRightEdge() = (Text_Right_Bound != 0) ? Text_Right_Bound : (Font_Size_L1 * max(len(Line1_Text), 1) * 0.55);
+
+// Centro do texto no eixo X (para centralizar o furo em top/bottom)
+function textCenterX() = (Text_Right_Bound != 0) ? Text_Center_X : (textRightEdge() * 0.5);
 
 // Borda inferior do bloco de texto (depende do número de linhas)
 function textBottomY() =
@@ -158,14 +170,14 @@ function textBottomY() =
 
 // --- Posição do centro do furo ---
 function holeX() =
-    (Hole_Position == "left")   ? (-3 + Ring_Offset) :                            // original exato
+    (Hole_Position == "left")   ? (textLeftEdge() - 3 + Ring_Offset) :
     (Hole_Position == "right")  ? (textRightEdge() + 3 + Ring_Offset) :
-    (Hole_Position == "top")    ? (textRightEdge() * 0.5 + Ring_Offset) :
-    (Hole_Position == "bottom") ? (textRightEdge() * 0.5 + Ring_Offset) :
+    (Hole_Position == "top")    ? (textCenterX() + Ring_Offset) :
+    (Hole_Position == "bottom") ? (textCenterX() + Ring_Offset) :
     0;
 
 function holeY() =
-    (Hole_Position == "left")   ? (textCenterY() + Hole_Height_Offset) :          // original exato
+    (Hole_Position == "left")   ? (textCenterY() + Hole_Height_Offset) :
     (Hole_Position == "right")  ? (textCenterY() + Hole_Height_Offset) :
     (Hole_Position == "top")    ? (Font_Size_L1 + 3 + Hole_Height_Offset) :
     (Hole_Position == "bottom") ? (textBottomY() - 3 + Hole_Height_Offset) :
@@ -173,17 +185,15 @@ function holeY() =
 
 // --- Ponto de ancoragem DENTRO da placa (para o hull criar a lingueta) ---
 function holeAnchorX() =
-    (Hole_Position == "left")   ? 2 :                                              // original exato
+    (Hole_Position == "left")   ? (textLeftEdge() + 2 + Ring_Offset) :
     (Hole_Position == "right")  ? (textRightEdge() - 2 + Ring_Offset) :
-    (Hole_Position == "top")    ? (textRightEdge() * 0.5 + Ring_Offset) :
-    (Hole_Position == "bottom") ? (textRightEdge() * 0.5 + Ring_Offset) :
+    (Hole_Position == "top")    ? (textCenterX() + Ring_Offset) :
+    (Hole_Position == "bottom") ? (textCenterX() + Ring_Offset) :
     0;
 
 function holeAnchorY() =
-    (Hole_Position == "left")   ? (textCenterY() + Hole_Height_Offset) :           // original exato
+    (Hole_Position == "left")   ? (textCenterY() + Hole_Height_Offset) :
     (Hole_Position == "right")  ? (textCenterY() + Hole_Height_Offset) :
     (Hole_Position == "top")    ? (Font_Size_L1 - 2 + Hole_Height_Offset) :
     (Hole_Position == "bottom") ? (textBottomY() + 2 + Hole_Height_Offset) :
     0;
-
-

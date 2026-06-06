@@ -320,20 +320,71 @@ function triggerAutoRender() {
 
 // Get all parameters from HTML inputs
 function getParameters(lowResolution = false) {
+  // Let's measure text bounds in browser
+  const getLineWidth = (text, font, size) => {
+    if (!text) return 0;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.font = `${size}px "${font}", sans-serif`;
+    return ctx.measureText(text).width * 1.33; // 1.33 scaling factor
+  };
+
+  const t1 = elements.Line1_Text.value;
+  const t2 = elements.Line2_Text.value;
+  const t3 = elements.Line3_Text.value;
+
+  const font1 = elements.Font_L1.value || 'Liberation Sans';
+  const font2 = elements.Font_L2.value || 'Liberation Sans';
+  const font3 = elements.Font_L3.value || 'Liberation Sans';
+
+  const size1 = parseFloat(elements.Font_Size_L1.value) || 20;
+  const size2 = parseFloat(elements.Font_Size_L2.value) || 20;
+  const size3 = parseFloat(elements.Font_Size_L3.value) || 20;
+
+  const off1 = parseFloat(elements.Offset_L1.value) || 0;
+  const off2 = parseFloat(elements.Offset_L2.value) || 0;
+  const off3 = parseFloat(elements.Offset_L3.value) || 0;
+
+  const w1 = getLineWidth(t1, font1, size1);
+  const w2 = t2 ? getLineWidth(t2, font2, size2) : 0;
+  const w3 = t3 ? getLineWidth(t3, font3, size3) : 0;
+
+  const left1 = off1;
+  const right1 = off1 + w1;
+
+  let left2 = left1;
+  let right2 = right1;
+  if (t2) {
+    left2 = off2;
+    right2 = off2 + w2;
+  }
+
+  let left3 = left1;
+  let right3 = right1;
+  if (t3) {
+    left3 = off3;
+    right3 = off3 + w3;
+  }
+
+  const layoutLeft = Math.min(left1, left2, left3);
+  const layoutRight = Math.max(right1, right2, right3);
+  const layoutWidth = layoutRight - layoutLeft;
+  const layoutCenter = (layoutLeft + layoutRight) * 0.5;
+
   return {
-    Line1_Text: elements.Line1_Text.value,
-    Line2_Text: elements.Line2_Text.value,
-    Line3_Text: elements.Line3_Text.value,
-    Font_L1: elements.Font_L1.value || 'Liberation Sans',
-    Font_L2: elements.Font_L2.value || 'Liberation Sans',
-    Font_L3: elements.Font_L3.value || 'Liberation Sans',
-    Font_Size_L1: parseFloat(elements.Font_Size_L1.value) || 20,
-    Font_Size_L2: parseFloat(elements.Font_Size_L2.value) || 20,
-    Font_Size_L3: parseFloat(elements.Font_Size_L3.value) || 20,
+    Line1_Text: t1,
+    Line2_Text: t2,
+    Line3_Text: t3,
+    Font_L1: font1,
+    Font_L2: font2,
+    Font_L3: font3,
+    Font_Size_L1: size1,
+    Font_Size_L2: size2,
+    Font_Size_L3: size3,
     Font_Weight_Steps: parseInt(elements.Font_Weight_Steps.value) || 0,
-    Offset_L1: parseFloat(elements.Offset_L1.value) || 0,
-    Offset_L2: parseFloat(elements.Offset_L2.value) || 0,
-    Offset_L3: parseFloat(elements.Offset_L3.value) || 0,
+    Offset_L1: off1,
+    Offset_L2: off2,
+    Offset_L3: off3,
     Spacing_L2: parseFloat(elements.Spacing_L2.value) || 1.1,
     Spacing_L3: parseFloat(elements.Spacing_L3.value) || 1.1,
     Plate_Height: parseFloat(elements.Plate_Height.value) || 3,
@@ -345,6 +396,10 @@ function getParameters(lowResolution = false) {
     Hole_Position: elements.Hole_Position.value || 'left',
     Base_Color: state.baseColor,
     Text_Color: state.textColor,
+    Text_Left_Bound: layoutLeft,
+    Text_Right_Bound: layoutRight,
+    Text_Center_X: layoutCenter,
+    Text_Width: layoutWidth,
     lowResolution: lowResolution
   };
 }

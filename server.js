@@ -292,6 +292,11 @@ Offset_L1 = ${parseFloat(params.Offset_L1) || 0};
 Offset_L2 = ${parseFloat(params.Offset_L2) || 0};
 Offset_L3 = ${parseFloat(params.Offset_L3) || 0};
 
+Text_Left_Bound = ${parseFloat(params.Text_Left_Bound) || 0};
+Text_Right_Bound = ${parseFloat(params.Text_Right_Bound) || 0};
+Text_Center_X = ${parseFloat(params.Text_Center_X) || 0};
+Text_Width = ${parseFloat(params.Text_Width) || 0};
+
 $fn = ${fnVal};
 
 ${moduleCode}
@@ -336,7 +341,11 @@ app.post('/api/render', async (req, res) => {
     Base_Color = 'Black',
     Text_Color = '#ADD8E6',
     Hole_Position = 'left',
-    lowResolution = false
+    lowResolution = false,
+    Text_Left_Bound = 0,
+    Text_Right_Bound = 0,
+    Text_Center_X = 0,
+    Text_Width = 0
   } = req.body;
 
   // Read template and extract code after parameter block
@@ -387,6 +396,7 @@ app.post('/api/render', async (req, res) => {
     Spacing_L2, Spacing_L3,
     Offset_L1, Offset_L2, Offset_L3,
     Base_Color, Text_Color,
+    Text_Left_Bound, Text_Right_Bound, Text_Center_X, Text_Width,
     lowResolution: true
   };
 
