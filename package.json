@@ -1,0 +1,28 @@
+{
+  "name": "criador-chaveiros-3d",
+  "version": "1.0.0",
+  "description": "Customizador web paramétrico para criação de chaveiros e letreiros 3D personalizados com OpenSCAD",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "3d-printing",
+    "openscad",
+    "keychain",
+    "chaveiro",
+    "parametric",
+    "customizer",
+    "threejs",
+    "stl",
+    "3mf"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "author": "Luciano",
+  "license": "MIT"
+}

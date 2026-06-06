@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criador de Chaveiros 3D - Customizador Paramétrico</title>
+  
+  <!-- Google Fonts -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔑</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Bagel+Fat+One&family=Lobster&family=Pacifico&family=Bangers&family=Dancing+Script:wght@700&family=Great+Vibes&family=Satisfy&family=Parisienne&family=Yellowtail&family=Playball&family=Cookie&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- App Container -->
+  <div class="app-container">
+    
+    <!-- Sidebar / Parameters Panel -->
+    <aside class="sidebar">
+      <header class="app-header">
+        <div class="logo-area">
+          <i class="fa-solid fa-key logo-icon"></i>
+          <h1>Chaveiro3D</h1>
+        </div>
+        <p class="tagline">Customizador Paramétrico Local</p>
+      </header>
+
+      <div class="scrollable-content">
+        <!-- Section: Text & Fonts -->
+        <section class="settings-group">
+          <h2 class="section-title"><i class="fa-solid fa-font"></i> Textos e Fontes</h2>
+          
+          <!-- Line 1 -->
+          <!-- Line 1 -->
+          <div class="control-box">
+            <label for="Line1_Text">Linha 1</label>
+            <div class="input-row">
+              <input type="text" id="Line1_Text" value="Luciano" placeholder="Texto da linha 1">
+            </div>
+            <div class="font-controls">
+              <div class="font-select-wrapper">
+                <select id="Font_L1">
+                  <option value="Bagel Fat One" selected>Bagel Fat One</option>
+                  <option value="Lobster">Lobster</option>
+                  <option value="Pacifico">Pacifico</option>
+                  <option value="Dancing Script">Dancing Script (Cursiva)</option>
+                  <option value="Great Vibes">Great Vibes (Elegante)</option>
+                  <option value="Satisfy">Satisfy (Pincel)</option>
+                  <option value="Parisienne">Parisienne (Clássica)</option>
+                  <option value="Yellowtail">Yellowtail (Retro Bold)</option>
+                  <option value="Playball">Playball (Esportiva)</option>
+                  <option value="Cookie">Cookie (Manuscrita)</option>
+                  <option value="Bangers">Bangers</option>
+                  <option value="Outfit">Outfit</option>
+                </select>
+              </div>
+              <div class="size-input-wrapper">
+                <label for="Font_Size_L1">Tam:</label>
+                <input type="number" id="Font_Size_L1" value="20" min="5" max="50">
+              </div>
+            </div>
+          </div>
+
+          <!-- Line 2 -->
+          <div class="control-box">
+            <label for="Line2_Text">Linha 2 (Opcional)</label>
+            <div class="input-row">
+              <input type="text" id="Line2_Text" value="" placeholder="Vazio para ocultar">
+            </div>
+            <div class="font-controls">
+              <div class="font-select-wrapper">
+                <select id="Font_L2">
+                  <option value="Bagel Fat One" selected>Bagel Fat One</option>
+                  <option value="Lobster">Lobster</option>
+                  <option value="Pacifico">Pacifico</option>
+                  <option value="Dancing Script">Dancing Script (Cursiva)</option>
+                  <option value="Great Vibes">Great Vibes (Elegante)</option>
+                  <option value="Satisfy">Satisfy (Pincel)</option>
+                  <option value="Parisienne">Parisienne (Clássica)</option>
+                  <option value="Yellowtail">Yellowtail (Retro Bold)</option>
+                  <option value="Playball">Playball (Esportiva)</option>
+                  <option value="Cookie">Cookie (Manuscrita)</option>
+                  <option value="Bangers">Bangers</option>
+                  <option value="Outfit">Outfit</option>
+                </select>
+              </div>
+              <div class="size-input-wrapper">
+                <label for="Font_Size_L2">Tam:</label>
+                <input type="number" id="Font_Size_L2" value="20" min="5" max="50">
+              </div>
+            </div>
+          </div>
+
+          <!-- Line 3 -->
+          <div class="control-box">
+            <label for="Line3_Text">Linha 3 (Opcional)</label>
+            <div class="input-row">
+              <input type="text" id="Line3_Text" value="" placeholder="Vazio para ocultar">
+            </div>
+            <div class="font-controls">
+              <div class="font-select-wrapper">
+                <select id="Font_L3">
+                  <option value="Bagel Fat One" selected>Bagel Fat One</option>
+                  <option value="Lobster">Lobster</option>
+                  <option value="Pacifico">Pacifico</option>
+                  <option value="Dancing Script">Dancing Script (Cursiva)</option>
+                  <option value="Great Vibes">Great Vibes (Elegante)</option>
+                  <option value="Satisfy">Satisfy (Pincel)</option>
+                  <option value="Parisienne">Parisienne (Clássica)</option>
+                  <option value="Yellowtail">Yellowtail (Retro Bold)</option>
+                  <option value="Playball">Playball (Esportiva)</option>
+                  <option value="Cookie">Cookie (Manuscrita)</option>
+                  <option value="Bangers">Bangers</option>
+                  <option value="Outfit">Outfit</option>
+                </select>
+              </div>
+              <div class="size-input-wrapper">
+                <label for="Font_Size_L3">Tam:</label>
+                <input type="number" id="Font_Size_L3" value="20" min="5" max="50">
+              </div>
+            </div>
+          </div>
+
+          <!-- Espessura da Fonte -->
+          <div class="control-box">
+            <div class="slider-header">
+              <label for="Font_Weight_Steps">Espessura (Negrito)</label>
+              <span class="value-display" id="Font_Weight_val">0.0</span>
+            </div>
+            <input type="range" id="Font_Weight_Steps" min="-10" max="20" value="0" step="1">
+          </div>
+        </section>
+
+        <!-- Section: Layout & Offsets -->
+        <section class="settings-group">
+          <h2 class="section-title"><i class="fa-solid fa-arrows-left-right"></i> Ajustes e Posições</h2>
+          
+          <!-- Offsets Horizontais -->
+          <div class="collapsible-section">
+            <button class="collapsible-header">Offsets Horizontais <i class="fa-solid fa-chevron-down"></i></button>
+            <div class="collapsible-content">
+              <div class="control-box">
+                <div class="slider-header">
+                  <label for="Offset_L1">Deslocamento L1</label>
+                  <span class="value-display" id="Offset_L1_val">0</span>
+                </div>
+                <input type="range" id="Offset_L1" min="-40" max="40" value="0" step="1">
+              </div>
+              <div class="control-box">
+                <div class="slider-header">
+                  <label for="Offset_L2">Deslocamento L2</label>
+                  <span class="value-display" id="Offset_L2_val">0</span>
+                </div>
+                <input type="range" id="Offset_L2" min="-40" max="40" value="0" step="1">
+              </div>
+              <div class="control-box">
+                <div class="slider-header">
+                  <label for="Offset_L3">Deslocamento L3</label>
+                  <span class="value-display" id="Offset_L3_val">0</span>
+                </div>
+                <input type="range" id="Offset_L3" min="-40" max="40" value="0" step="1">
+              </div>
+            </div>
+          </div>
+
+          <!-- Espaçamento Vertical -->
+          <div class="control-box">
+            <div class="slider-header">
+              <label for="Spacing_L2">Espaço Linha 2</label>
+              <span class="value-display" id="Spacing_L2_val">1.1</span>
+            </div>
+            <input type="range" id="Spacing_L2" min="0.5" max="2" value="1.1" step="0.1">
+          </div>
+          <div class="control-box">
+            <div class="slider-header">
+              <label for="Spacing_L3">Espaço Linha 3</label>
+              <span class="value-display" id="Spacing_L3_val">1.1</span>
+            </div>
+            <input type="range" id="Spacing_L3" min="0.5" max="2" value="1.1" step="0.1">
+          </div>
+        </section>
+
+        <!-- Section: Base & Furo -->
+        <section class="settings-group">
+          <h2 class="section-title"><i class="fa-solid fa-shapes"></i> Dimensões e Furo</h2>
+          
+          <div class="two-column-layout">
+            <div class="control-box">
+              <label for="Plate_Height">Alt. Base (mm)</label>
+              <input type="number" id="Plate_Height" value="3" step="0.5" min="1" max="10">
+            </div>
+            <div class="control-box">
+              <label for="Text_Height">Alt. Texto (mm)</label>
+              <input type="number" id="Text_Height" value="2" step="0.5" min="0.5" max="10">
+            </div>
+          </div>
+
+          <div class="control-box">
+            <div class="slider-header">
+              <label for="Border_Size">Largura da Borda</label>
+              <span class="value-display" id="Border_Size_val">3</span>
+            </div>
+            <input type="range" id="Border_Size" min="1" max="8" value="3" step="0.5">
+          </div>
+
+          <div class="collapsible-section">
+            <button class="collapsible-header">Ajustes Furo Anel <i class="fa-solid fa-chevron-down"></i></button>
+            <div class="collapsible-content">
+              <div class="control-box">
+                <label for="Hole_Position">Tipo de Modelo</label>
+                <div class="select-wrapper">
+                  <select id="Hole_Position">
+                    <option value="left" selected>Chaveiro (com furo alça)</option>
+                    <option value="none">Letreiro / Placa de Mesa (sem furo)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="control-box" id="box-hole-radius">
+                <div class="slider-header">
+                  <label for="Hole_Radius">Raio do Furo</label>
+                  <span class="value-display" id="Hole_Radius_val">3.0</span>
+                </div>
+                <input type="range" id="Hole_Radius" min="1.5" max="6" value="3.0" step="0.5">
+              </div>
+              <div class="control-box" id="box-ring-offset">
+                <div class="slider-header">
+                  <label for="Ring_Offset">Offset Horizontal</label>
+                  <span class="value-display" id="Ring_Offset_val">0</span>
+                </div>
+                <input type="range" id="Ring_Offset" min="-20" max="20" value="0" step="1">
+              </div>
+              <div class="control-box" id="box-hole-height-offset">
+                <div class="slider-header">
+                  <label for="Hole_Height_Offset">Offset Vertical</label>
+                  <span class="value-display" id="Hole_Height_Offset_val">0</span>
+                </div>
+                <input type="range" id="Hole_Height_Offset" min="-20" max="20" value="0" step="1">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Preview Material Settings (Base vs Text) -->
+        <section class="settings-group">
+          <h2 class="section-title"><i class="fa-solid fa-palette"></i> Cores do Filamento</h2>
+          
+          <!-- Base Color -->
+          <div class="control-box">
+            <label style="margin-bottom: 6px; display: block;">Cor da Base (Placa)</label>
+            <div class="color-picker-grid" id="base-color-grid">
+              <button class="color-btn base-color-btn active" data-color="#212121" style="background-color: #212121;" title="Preto PLA"></button>
+              <button class="color-btn base-color-btn" data-color="#ffffff" style="background-color: #ffffff;" title="Branco PLA"></button>
+              <button class="color-btn base-color-btn" data-color="#1565C0" style="background-color: #1565C0;" title="Azul PLA"></button>
+              <button class="color-btn base-color-btn" data-color="#C62828" style="background-color: #C62828;" title="Vermelho PLA"></button>
+              <button class="color-btn base-color-btn" data-color="#2E7D32" style="background-color: #2E7D32;" title="Verde PLA"></button>
+              <button class="color-btn base-color-btn" data-color="#F9A825" style="background-color: #F9A825;" title="Amarelo/Ouro PLA"></button>
+              <button class="color-btn base-color-btn" data-color="#FF8F00" style="background-color: #FF8F00;" title="Laranja PLA"></button>
+              <button class="color-btn base-color-btn" data-color="#6A1B9A" style="background-color: #6A1B9A;" title="Roxo PLA"></button>
+            </div>
+            <div class="color-input-wrapper">
+              <input type="color" id="base-custom-color" value="#212121">
+              <span style="font-size: 11px; color: var(--text-muted);">Cor personalizada da base</span>
+            </div>
+          </div>
+
+          <!-- Text Color -->
+          <div class="control-box" style="margin-top: 16px;">
+            <label style="margin-bottom: 6px; display: block;">Cor do Texto</label>
+            <div class="color-picker-grid" id="text-color-grid">
+              <button class="color-btn text-color-btn active" data-color="#ADD8E6" style="background-color: #ADD8E6;" title="Azul Claro PLA"></button>
+              <button class="color-btn text-color-btn" data-color="#ffffff" style="background-color: #ffffff;" title="Branco PLA"></button>
+              <button class="color-btn text-color-btn" data-color="#1565C0" style="background-color: #1565C0;" title="Azul PLA"></button>
+              <button class="color-btn text-color-btn" data-color="#C62828" style="background-color: #C62828;" title="Vermelho PLA"></button>
+              <button class="color-btn text-color-btn" data-color="#2E7D32" style="background-color: #2E7D32;" title="Verde PLA"></button>
+              <button class="color-btn text-color-btn" data-color="#F9A825" style="background-color: #F9A825;" title="Amarelo/Ouro PLA"></button>
+              <button class="color-btn text-color-btn" data-color="#FF8F00" style="background-color: #FF8F00;" title="Laranja PLA"></button>
+              <button class="color-btn text-color-btn" data-color="#212121" style="background-color: #212121;" title="Preto PLA"></button>
+            </div>
+            <div class="color-input-wrapper">
+              <input type="color" id="text-custom-color" value="#ADD8E6">
+              <span style="font-size: 11px; color: var(--text-muted);">Cor personalizada do texto</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Footer action panel -->
+      <div class="sidebar-actions">
+        <button id="btn-render" class="primary-btn"><i class="fa-solid fa-rotate"></i> Atualizar Prévia</button>
+        <div class="two-column-layout">
+          <button id="btn-download" class="success-btn" disabled><i class="fa-solid fa-download"></i> Baixar STL</button>
+          <button id="btn-download-3mf" class="success-btn" disabled style="background: linear-gradient(135deg, #0284c7, #0369a1);" title="Recomendado para impressoras coloridas (Bambu AMS, Prusa MMU, etc.)"><i class="fa-solid fa-palette"></i> Baixar 3MF</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Viewport / 3D Canvas -->
+    <main class="viewport-area">
+      <!-- Top Status Bar -->
+      <div class="status-bar">
+        <div id="openscad-status" class="status-badge checking">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> Verificando OpenSCAD...
+        </div>
+        <div class="help-links">
+          <button id="btn-toggle-theme" class="icon-btn" title="Alternar Tema"><i class="fa-solid fa-sun"></i></button>
+          <button id="btn-open-settings" class="icon-btn" title="Configurar OpenSCAD"><i class="fa-solid fa-cog"></i></button>
+        </div>
+      </div>
+
+      <!-- Warning Banner if OpenSCAD missing -->
+      <div id="openscad-warning-banner" class="warning-banner hidden">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>O executável do <strong>OpenSCAD</strong> não foi encontrado no sistema. A geração do modelo 3D está desabilitada.</span>
+        <button id="btn-fix-warning" class="mini-btn">Configurar Caminho</button>
+      </div>
+
+      <!-- 3D Canvas Container -->
+      <div id="canvas-container">
+        <!-- Navigation helpers overlay -->
+        <div class="navigation-helper">
+          <span><i class="fa-solid fa-mouse-pointer"></i> Arraste para Girar</span>
+          <span><i class="fa-solid fa-arrows-up-down-left-right"></i> Shift+Arraste para Mover</span>
+          <span><i class="fa-solid fa-circle-notch"></i> Scroll para Zoom</span>
+        </div>
+      </div>
+
+      <!-- Render Loading Overlay -->
+      <div id="render-loader" class="loader-overlay hidden">
+        <div class="loader-content">
+          <div class="spinner-box">
+            <div class="spinner-ring"></div>
+            <i class="fa-solid fa-cube inner-cube"></i>
+          </div>
+          <h3>Renderizando Modelo 3D</h3>
+          <p>Compilando geometria através do OpenSCAD...</p>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Settings Modal (OpenSCAD Configuration) -->
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-sliders"></i> Configurações do Sistema</h2>
+        <button id="btn-close-modal" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Para gerar arquivos STL a partir dos parâmetros, esta aplicação web executa o compilador OpenSCAD no seu sistema.</p>
+        
+        <div class="input-group">
+          <label for="openscad-path-input">Caminho do executável <strong>openscad.exe</strong>:</label>
+          <input type="text" id="openscad-path-input" placeholder="Ex: C:\Program Files\OpenSCAD\openscad.exe">
+          <span class="input-hint">Padrão em sistemas Windows de 64 bits: <code>C:\Program Files\OpenSCAD\openscad.exe</code></span>
+        </div>
+
+        <div class="download-guide">
+          <h3>Não tem o OpenSCAD instalado?</h3>
+          <p>O OpenSCAD é um software livre (gratuito) de modelagem 3D sólida.</p>
+          <a href="https://openscad.org/downloads.html" target="_blank" class="download-link">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Ir para página de download oficial
+          </a>
+        </div>
+        
+        <div id="modal-error-msg" class="modal-error hidden"></div>
+        <div id="modal-success-msg" class="modal-success hidden">Caminho salvo com sucesso!</div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-save-settings" class="primary-btn"><i class="fa-solid fa-floppy-disk"></i> Salvar e Testar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Libraries Scripts (CDNs served with local fallbacks if offline) -->
+  <script src="lib/three.min.js" onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';"></script>
+  <script src="lib/OrbitControls.js" onerror="this.onerror=null; this.src='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';"></script>
+  <script src="lib/STLLoader.js" onerror="this.onerror=null; this.src='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js';"></script>
+  
+  <script src="app.js"></script>
+</body>
+</html>

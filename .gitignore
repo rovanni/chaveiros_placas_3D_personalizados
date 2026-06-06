@@ -1,0 +1,49 @@
+# ========================
+# Node.js
+# ========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ========================
+# Arquivos Temporários
+# ========================
+temp/
+*.stl
+*.3mf
+
+# ========================
+# Fontes (baixadas automaticamente na inicialização)
+# ========================
+fonts/
+
+# ========================
+# Bibliotecas JS (baixadas automaticamente na inicialização)
+# ========================
+public/lib/
+
+# ========================
+# Configuração Local (contém caminho do OpenSCAD da máquina do usuário)
+# ========================
+config.json
+
+# ========================
+# Arquivos internos do assistente de desenvolvimento
+# ========================
+artifacts_link/
+
+# ========================
+# Sistema Operacional
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# IDEs e Editores
+# ========================
+.vscode/
+.idea/
+*.suo
+*.user

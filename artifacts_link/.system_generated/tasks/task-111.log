@@ -1,0 +1,9 @@
+
+> criador-chaveiros@1.0.0 start
+> node server.js
+
+Servidor rodando em http://localhost:3000
+Inicializando recursos...
+Baixando fonte: Outfit[wght].ttf...
+Fonte Outfit[wght].ttf baixada.
+Recursos prontos.

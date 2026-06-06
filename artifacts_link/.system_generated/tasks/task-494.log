@@ -1,0 +1,5 @@
+Successfully scheduled one-shot timer.
+Expected to fire at: 2026-06-05T20:27:17-03:00
+Prompt: Wait for $fn benchmark task-492 to complete
+
+[2026-06-05T20:27:17-03:00] Timer fired.

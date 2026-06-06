@@ -1,0 +1,9 @@
+
+> criador-chaveiros@1.0.0 start
+> node server.js
+
+Servidor rodando em http://localhost:3000
+Inicializando recursos...
+Baixando fonte: Outfit-Bold.ttf...
+Erro ao baixar a fonte Outfit-Bold.ttf: Failed to download (Status 404) from https://github.com/Outfitio/Outfit-Fonts/raw/main/static/Outfit-Bold.ttf
+Recursos prontos.
