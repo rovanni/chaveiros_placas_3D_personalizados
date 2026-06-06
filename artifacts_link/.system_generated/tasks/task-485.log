@@ -1,5 +1,0 @@
-Successfully scheduled one-shot timer.
-Expected to fire at: 2026-06-05T20:26:28-03:00
-Prompt: Wait for OpenSCAD compile benchmark task-481 to complete
-
-[2026-06-05T20:26:28-03:00] Timer fired.

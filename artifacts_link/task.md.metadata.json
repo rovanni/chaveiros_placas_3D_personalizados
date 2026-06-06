@@ -1,5 +1,0 @@
-{
-  "artifactType": "ARTIFACT_TYPE_TASK",
-  "summary": "Lista de tarefas para acompanhar o desenvolvimento do Criador de Chaveiros Personalizados. Inclui inicialização do projeto Node.js, desenvolvimento do backend (server.js), do frontend (HTML, CSS, JS com Three.js) e verificação do funcionamento.",
-  "updatedAt": "2026-06-05T21:32:28.688526900Z"
-}

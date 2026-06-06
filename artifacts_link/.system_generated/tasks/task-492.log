@@ -1,4 +1,0 @@
-Benchmarking different $fn values...
-$fn = 16: 21.092s
-$fn = 32: 21.304s
-$fn = 64: 21.003s
