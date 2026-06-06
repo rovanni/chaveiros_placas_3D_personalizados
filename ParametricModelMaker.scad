@@ -133,42 +133,57 @@ module generateTextShape() {
 
 // -----------------------------------------------------------------------
 // POSIÇÃO DO BURACO – suporta: "right", "left", "top", "bottom", "none"
-// holeX/holeY  → centro do furo (externo)
-// holeAnchorX/Y → ponto de encosto na borda da placa (para o hull)
+//
+// Geometria de referência:
+//   - text() no OpenSCAD: baseline em y=0, texto cresce para CIMA (+Y)
+//   - Topo do texto ≈ y = Font_Size_L1
+//   - Centro vertical ≈ y = Font_Size_L1 * 0.5
+//   - A placa é offset(r=Border_Size) ao redor do texto
+//
+// holeX/holeY    → centro do cilindro do furo (externo à placa)
+// holeAnchorX/Y  → ponto DENTRO da placa (para o hull criar a lingueta)
 // -----------------------------------------------------------------------
 
-// Centro vertical do texto (usado como referência para left/right)
-function textCenterY() = -Font_Size_L1 * 0.5;
+// Centro vertical do texto (baseline=0, topo≈Font_Size_L1)
+function textCenterY() = Font_Size_L1 * 0.5;
 
-// Estimativa da largura do texto (usado como referência para top/bottom)
-function textWidth() = Font_Size_L1 * len(Line1_Text) * 0.55;
+// Estimativa da borda direita do texto (caract. × fator × tamanho)
+function textRightEdge() = Font_Size_L1 * max(len(Line1_Text), 1) * 0.55;
 
+// Borda inferior do bloco de texto (depende do número de linhas)
+function textBottomY() =
+    (Line3_Text != "") ? -(Font_Size_L1 * Spacing_L2 + Font_Size_L2 * Spacing_L3) :
+    (Line2_Text != "") ? -(Font_Size_L1 * Spacing_L2) :
+    0;
+
+// --- Posição do centro do furo ---
 function holeX() =
-    (Hole_Position == "right")  ?  textWidth() + Border_Size + Hole_Radius + 2 + Ring_Offset :
-    (Hole_Position == "left")   ? -(Border_Size + Hole_Radius + 2 + Ring_Offset) :
-    (Hole_Position == "top")    ?  textWidth() * 0.5 + Ring_Offset :
-    (Hole_Position == "bottom") ?  textWidth() * 0.5 + Ring_Offset :
+    (Hole_Position == "left")   ? (-3 + Ring_Offset) :                            // original exato
+    (Hole_Position == "right")  ? (textRightEdge() + 3 + Ring_Offset) :
+    (Hole_Position == "top")    ? (textRightEdge() * 0.5 + Ring_Offset) :
+    (Hole_Position == "bottom") ? (textRightEdge() * 0.5 + Ring_Offset) :
     0;
 
 function holeY() =
-    (Hole_Position == "right")  ?  textCenterY() + Hole_Height_Offset :
-    (Hole_Position == "left")   ?  textCenterY() + Hole_Height_Offset :
-    (Hole_Position == "top")    ?  Border_Size + Hole_Radius + 2 + Ring_Offset + Hole_Height_Offset :
-    (Hole_Position == "bottom") ? -(Font_Size_L1 + Border_Size + Hole_Radius + 2 + Ring_Offset) + Hole_Height_Offset :
+    (Hole_Position == "left")   ? (textCenterY() + Hole_Height_Offset) :          // original exato
+    (Hole_Position == "right")  ? (textCenterY() + Hole_Height_Offset) :
+    (Hole_Position == "top")    ? (Font_Size_L1 + 3 + Hole_Height_Offset) :
+    (Hole_Position == "bottom") ? (textBottomY() - 3 + Hole_Height_Offset) :
     0;
 
-// Ponto de ancoragem na borda da placa (para o hull criar a lingueta)
+// --- Ponto de ancoragem DENTRO da placa (para o hull criar a lingueta) ---
 function holeAnchorX() =
-    (Hole_Position == "right")  ?  textWidth() + Border_Size + Ring_Offset :
-    (Hole_Position == "left")   ?  Ring_Offset :
-    (Hole_Position == "top")    ?  textWidth() * 0.5 + Ring_Offset :
-    (Hole_Position == "bottom") ?  textWidth() * 0.5 + Ring_Offset :
+    (Hole_Position == "left")   ? 2 :                                              // original exato
+    (Hole_Position == "right")  ? (textRightEdge() - 2 + Ring_Offset) :
+    (Hole_Position == "top")    ? (textRightEdge() * 0.5 + Ring_Offset) :
+    (Hole_Position == "bottom") ? (textRightEdge() * 0.5 + Ring_Offset) :
     0;
 
 function holeAnchorY() =
-    (Hole_Position == "right")  ?  textCenterY() + Hole_Height_Offset :
-    (Hole_Position == "left")   ?  textCenterY() + Hole_Height_Offset :
-    (Hole_Position == "top")    ?  Border_Size + Ring_Offset + Hole_Height_Offset :
-    (Hole_Position == "bottom") ? -(Font_Size_L1 + Border_Size + Ring_Offset) + Hole_Height_Offset :
+    (Hole_Position == "left")   ? (textCenterY() + Hole_Height_Offset) :           // original exato
+    (Hole_Position == "right")  ? (textCenterY() + Hole_Height_Offset) :
+    (Hole_Position == "top")    ? (Font_Size_L1 - 2 + Hole_Height_Offset) :
+    (Hole_Position == "bottom") ? (textBottomY() + 2 + Hole_Height_Offset) :
     0;
+
 
