@@ -263,17 +263,28 @@ function setupUIListeners() {
   elements.btnSaveSettings.addEventListener('click', saveSettings);
   elements.btnToggleTheme.addEventListener('click', toggleTheme);
 
-  // Hole Position Toggle & Visibility of Sliders
+  // Hole Position Compass Picker
   const updateHoleControlsVisibility = () => {
     const isNone = elements.Hole_Position.value === 'none';
     document.getElementById('box-hole-radius').style.display = isNone ? 'none' : 'block';
     document.getElementById('box-ring-offset').style.display = isNone ? 'none' : 'block';
     document.getElementById('box-hole-height-offset').style.display = isNone ? 'none' : 'block';
   };
-  elements.Hole_Position.addEventListener('change', () => {
-    updateHoleControlsVisibility();
-    triggerAutoRender();
+
+  document.querySelectorAll('.hole-pos-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Update active state
+      document.querySelectorAll('.hole-pos-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Update hidden input
+      elements.Hole_Position.value = btn.dataset.pos;
+      // Update visibility of sliders
+      updateHoleControlsVisibility();
+      // Trigger re-render
+      triggerAutoRender();
+    });
   });
+
   updateHoleControlsVisibility();
 
   // Change select element font family dynamically when option is selected

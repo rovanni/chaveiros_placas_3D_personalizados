@@ -34,7 +34,7 @@ Plate_Height    = 3;
 Border_Size     = 3;
 
 // HOLE OPTIONS
-Hole_Position       = "left"; // ["left", "none"]
+Hole_Position       = "right"; // ["right", "left", "top", "bottom", "none"]
 Hole_Radius         = 3;
 Ring_Offset         = 0;
 Hole_Height_Offset  = 0;
@@ -68,7 +68,7 @@ module generateBackPlateWithHole() {
         generateBackPlate();  // base branca
 
         if (Hole_Position != "none") {
-            translate([(-3 + Ring_Offset), fixedHoleY(), 0])
+            translate([holeX(), holeY(), 0])
                 cylinder(h = Plate_Height, r = Hole_Radius);
         }
     }
@@ -85,10 +85,10 @@ module generateBackPlate() {
     if (Hole_Position != "none") {
         color(Base_Color)
             hull() {
-                translate([(-3 + Ring_Offset), fixedHoleY(), 0])
+                translate([holeX(), holeY(), 0])
                     cylinder(h = Plate_Height, r = Hole_Radius + 2);
 
-                translate([2, fixedHoleY(), 0])
+                translate([holeAnchorX(), holeAnchorY(), 0])
                     cylinder(h = Plate_Height, r = Hole_Radius + 2);
             }
     }
@@ -131,5 +131,44 @@ module generateTextShape() {
     }
 }
 
-// POSIÇÃO DO BURACO
-function fixedHoleY() = Font_Size_L1 * 0.5 + Hole_Height_Offset;
+// -----------------------------------------------------------------------
+// POSIÇÃO DO BURACO – suporta: "right", "left", "top", "bottom", "none"
+// holeX/holeY  → centro do furo (externo)
+// holeAnchorX/Y → ponto de encosto na borda da placa (para o hull)
+// -----------------------------------------------------------------------
+
+// Centro vertical do texto (usado como referência para left/right)
+function textCenterY() = -Font_Size_L1 * 0.5;
+
+// Estimativa da largura do texto (usado como referência para top/bottom)
+function textWidth() = Font_Size_L1 * len(Line1_Text) * 0.55;
+
+function holeX() =
+    (Hole_Position == "right")  ?  textWidth() + Border_Size + Hole_Radius + 2 + Ring_Offset :
+    (Hole_Position == "left")   ? -(Border_Size + Hole_Radius + 2 + Ring_Offset) :
+    (Hole_Position == "top")    ?  textWidth() * 0.5 + Ring_Offset :
+    (Hole_Position == "bottom") ?  textWidth() * 0.5 + Ring_Offset :
+    0;
+
+function holeY() =
+    (Hole_Position == "right")  ?  textCenterY() + Hole_Height_Offset :
+    (Hole_Position == "left")   ?  textCenterY() + Hole_Height_Offset :
+    (Hole_Position == "top")    ?  Border_Size + Hole_Radius + 2 + Ring_Offset + Hole_Height_Offset :
+    (Hole_Position == "bottom") ? -(Font_Size_L1 + Border_Size + Hole_Radius + 2 + Ring_Offset) + Hole_Height_Offset :
+    0;
+
+// Ponto de ancoragem na borda da placa (para o hull criar a lingueta)
+function holeAnchorX() =
+    (Hole_Position == "right")  ?  textWidth() + Border_Size + Ring_Offset :
+    (Hole_Position == "left")   ?  Ring_Offset :
+    (Hole_Position == "top")    ?  textWidth() * 0.5 + Ring_Offset :
+    (Hole_Position == "bottom") ?  textWidth() * 0.5 + Ring_Offset :
+    0;
+
+function holeAnchorY() =
+    (Hole_Position == "right")  ?  textCenterY() + Hole_Height_Offset :
+    (Hole_Position == "left")   ?  textCenterY() + Hole_Height_Offset :
+    (Hole_Position == "top")    ?  Border_Size + Ring_Offset + Hole_Height_Offset :
+    (Hole_Position == "bottom") ? -(Font_Size_L1 + Border_Size + Ring_Offset) + Hole_Height_Offset :
+    0;
+

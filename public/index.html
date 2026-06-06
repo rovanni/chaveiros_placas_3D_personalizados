@@ -213,14 +213,42 @@
             <button class="collapsible-header">Ajustes Furo Anel <i class="fa-solid fa-chevron-down"></i></button>
             <div class="collapsible-content">
               <div class="control-box">
-                <label for="Hole_Position">Tipo de Modelo</label>
-                <div class="select-wrapper">
-                  <select id="Hole_Position">
-                    <option value="left" selected>Chaveiro (com furo alça)</option>
-                    <option value="none">Letreiro / Placa de Mesa (sem furo)</option>
-                  </select>
+                <label for="Hole_Position">Tipo de Modelo / Posição do Furo</label>
+                <!-- Hidden input keeps the actual value for app.js to read -->
+                <input type="hidden" id="Hole_Position" value="right">
+                <div class="hole-position-picker">
+                  <!-- Row 1: top -->
+                  <div class="hole-row">
+                    <button class="hole-pos-btn" data-pos="top" title="Furo em cima">
+                      <i class="fa-solid fa-arrow-up"></i>
+                      <span>Cima</span>
+                    </button>
+                  </div>
+                  <!-- Row 2: left / none / right -->
+                  <div class="hole-row hole-row-middle">
+                    <button class="hole-pos-btn" data-pos="left" title="Furo à esquerda">
+                      <i class="fa-solid fa-arrow-left"></i>
+                      <span>Esq</span>
+                    </button>
+                    <button class="hole-pos-btn hole-pos-none" data-pos="none" title="Letreiro / Placa (sem furo)">
+                      <i class="fa-solid fa-ban"></i>
+                      <span>Sem</span>
+                    </button>
+                    <button class="hole-pos-btn active" data-pos="right" title="Furo à direita">
+                      <i class="fa-solid fa-arrow-right"></i>
+                      <span>Dir</span>
+                    </button>
+                  </div>
+                  <!-- Row 3: bottom -->
+                  <div class="hole-row">
+                    <button class="hole-pos-btn" data-pos="bottom" title="Furo embaixo">
+                      <i class="fa-solid fa-arrow-down"></i>
+                      <span>Baixo</span>
+                    </button>
+                  </div>
                 </div>
               </div>
+
               <div class="control-box" id="box-hole-radius">
                 <div class="slider-header">
                   <label for="Hole_Radius">Raio do Furo</label>
