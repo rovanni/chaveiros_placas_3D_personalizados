@@ -496,7 +496,7 @@ app.post('/api/compile-download', async (req, res) => {
       if (!fs.existsSync(tempCombinedStlPath)) {
         throw new Error('Falha ao compilar o STL unificado.');
       }
-      res.json({ success: true, downloadUrl: `/temp/${fileId}_completo.stl` });
+      res.json({ success: true, downloadUrl: `/api/download?fileId=${fileId}&format=stl&text=${encodeURIComponent(params.Line1_Text)}` });
 
     } else if (format === '3mf') {
       const temp3mfPath = path.join(TEMP_DIR, `${fileId}.3mf`);
@@ -508,7 +508,7 @@ app.post('/api/compile-download', async (req, res) => {
       if (!fs.existsSync(temp3mfPath)) {
         throw new Error('Falha ao compilar o arquivo 3MF.');
       }
-      res.json({ success: true, downloadUrl: `/temp/${fileId}.3mf` });
+      res.json({ success: true, downloadUrl: `/api/download?fileId=${fileId}&format=3mf&text=${encodeURIComponent(params.Line1_Text)}` });
     } else {
       res.status(400).json({ error: 'Formato desconhecido.' });
     }
@@ -518,6 +518,43 @@ app.post('/api/compile-download', async (req, res) => {
     fs.unlink(tempScadPathAll, () => {});
     res.status(500).json({ error: 'Erro ao compilar o arquivo para download.', details: err.message });
   }
+});
+
+// Serves generated files as attachments to force correct file extension downloads
+app.get('/api/download', (req, res) => {
+  const { fileId, format, text } = req.query;
+  if (!fileId || !format) {
+    return res.status(400).send('Parâmetros inválidos');
+  }
+
+  // Clean the text to make a safe filename
+  const safeText = (text || 'personalizado')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove accents
+    .replace(/[^a-zA-Z0-9_\-\s]/g, '') // remove special characters except spaces/hyphens
+    .trim()
+    .replace(/\s+/g, '_'); // replace spaces with underscores
+
+  const filename = `chaveiro_${safeText || 'personalizado'}.${format}`;
+
+  let filePath = '';
+  if (format === 'stl') {
+    filePath = path.join(TEMP_DIR, `${fileId}_completo.stl`);
+  } else if (format === '3mf') {
+    filePath = path.join(TEMP_DIR, `${fileId}.3mf`);
+  } else {
+    return res.status(400).send('Formato inválido');
+  }
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send('Arquivo não encontrado. Por favor, gere o arquivo novamente.');
+  }
+
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Content-Type', 'application/octet-stream');
+  
+  const filestream = fs.createReadStream(filePath);
+  filestream.pipe(res);
 });
 
 // Get list of system fonts (optimized for Windows, covering both system and user fonts)
