@@ -145,6 +145,6 @@ As fontes Google Fonts são distribuídas sob a **SIL Open Font License (OFL)** 
 
 ## 👤 Autor
 
-**Luciano Rovanni do Nascimento** — [rovanni@gmail.com](mailto:rovanni@gmail.com)
+**Luciano Rovanni do Nascimento**
 
 *Feito com ☕ e muito OpenSCAD!*

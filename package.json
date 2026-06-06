@@ -23,6 +23,6 @@
   "dependencies": {
     "express": "^4.19.2"
   },
-  "author": "Luciano Rovanni do Nascimento <rovanni@gmail.com>",
+  "author": "Luciano Rovanni do Nascimento",
   "license": "MIT"
 }
