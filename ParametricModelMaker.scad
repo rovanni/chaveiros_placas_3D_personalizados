@@ -44,6 +44,11 @@ Text_Left_Bound     = 0;
 Text_Right_Bound    = 0;
 Text_Center_X       = 0;
 Text_Width          = 0;
+Hole_Y_Calculated   = 10;
+Line1_Width         = 0;
+Line2_Width         = 0;
+Line3_Width         = 0;
+
 
 // LINE SPACING
 Spacing_L2          = 1.1;   // [0.5:0.1:2]
@@ -74,9 +79,28 @@ module generateBackPlateWithHole() {
         generateBackPlate();  // base branca
 
         if (Hole_Position != "none") {
-            translate([holeX(), holeY(), 0])
-                cylinder(h = Plate_Height, r = Hole_Radius);
+            translate([holeX(), holeY(), -1])
+                cylinder(h = Plate_Height + 2, r = Hole_Radius);
         }
+    }
+}
+
+// BARRAS DE CONEXÃO DA BASE
+module generateConnectorBars() {
+    // Linha 1
+    if (Line1_Width > 0) {
+        translate([Offset_L1, 0])
+            square([Line1_Width, Font_Size_L1 * 0.08]);
+    }
+    // Linha 2
+    if (Line2_Text != "" && Line2_Width > 0) {
+        translate([Offset_L2, -Font_Size_L1 * Spacing_L2])
+            square([Line2_Width, Font_Size_L2 * 0.08]);
+    }
+    // Linha 3
+    if (Line3_Text != "" && Line3_Width > 0) {
+        translate([Offset_L3, -(Font_Size_L1 * Spacing_L2 + Font_Size_L2 * Spacing_L3)])
+            square([Line3_Width, Font_Size_L3 * 0.08]);
     }
 }
 
@@ -86,7 +110,10 @@ module generateBackPlate() {
     color(Base_Color)
         linear_extrude(Plate_Height)
             offset(r = Border_Size)
-                generateTextShape();
+                union() {
+                    generateTextShape();
+                    generateConnectorBars();
+                }
 
     if (Hole_Position != "none") {
         color(Base_Color)
@@ -177,23 +204,23 @@ function holeX() =
     0;
 
 function holeY() =
-    (Hole_Position == "left")   ? (textCenterY() + Hole_Height_Offset) :
-    (Hole_Position == "right")  ? (textCenterY() + Hole_Height_Offset) :
+    (Hole_Position == "left")   ? (Hole_Y_Calculated + Hole_Height_Offset) :
+    (Hole_Position == "right")  ? (Hole_Y_Calculated + Hole_Height_Offset) :
     (Hole_Position == "top")    ? (Font_Size_L1 + 3 + Hole_Height_Offset) :
     (Hole_Position == "bottom") ? (textBottomY() - 3 + Hole_Height_Offset) :
     0;
 
 // --- Ponto de ancoragem DENTRO da placa (para o hull criar a lingueta) ---
 function holeAnchorX() =
-    (Hole_Position == "left")   ? (textLeftEdge() + 2 + Ring_Offset) :
-    (Hole_Position == "right")  ? (textRightEdge() - 2 + Ring_Offset) :
+    (Hole_Position == "left")   ? (textLeftEdge() + 2) :
+    (Hole_Position == "right")  ? (textRightEdge() - 2) :
     (Hole_Position == "top")    ? (textCenterX() + Ring_Offset) :
     (Hole_Position == "bottom") ? (textCenterX() + Ring_Offset) :
     0;
 
 function holeAnchorY() =
-    (Hole_Position == "left")   ? (textCenterY() + Hole_Height_Offset) :
-    (Hole_Position == "right")  ? (textCenterY() + Hole_Height_Offset) :
-    (Hole_Position == "top")    ? (Font_Size_L1 - 2 + Hole_Height_Offset) :
-    (Hole_Position == "bottom") ? (textBottomY() + 2 + Hole_Height_Offset) :
+    (Hole_Position == "left")   ? (Hole_Y_Calculated) :
+    (Hole_Position == "right")  ? (Hole_Y_Calculated) :
+    (Hole_Position == "top")    ? (Font_Size_L1 - 2) :
+    (Hole_Position == "bottom") ? (textBottomY() + 2) :
     0;

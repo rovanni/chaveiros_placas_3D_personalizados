@@ -13,7 +13,8 @@ const state = {
   textColor: '#ADD8E6', // Default text color: Light Blue
   baseMesh: null,
   textMesh: null,
-  renderDebounceTimer: null
+  renderDebounceTimer: null,
+  cameraInitialized: false
 };
 
 // DOM Elements
@@ -63,6 +64,7 @@ const elements = {
   btnDownload3mf: document.getElementById('btn-download-3mf'),
   btnToggleTheme: document.getElementById('btn-toggle-theme'),
   btnOpenSettings: document.getElementById('btn-open-settings'),
+  btnResetView: document.getElementById('btn-reset-view'),
   renderLoader: document.getElementById('render-loader'),
 
   // Modal
@@ -74,7 +76,16 @@ const elements = {
   modalSuccessMsg: document.getElementById('modal-success-msg'),
 
   // Canvas
-  canvasContainer: document.getElementById('canvas-container')
+  canvasContainer: document.getElementById('canvas-container'),
+
+  // Wizard
+  setupWizard: document.getElementById('setup-wizard'),
+  wizardScreenOffline: document.getElementById('wizard-screen-offline'),
+  wizardScreenOpenscad: document.getElementById('wizard-screen-openscad'),
+  wizardBadgeStatus: document.getElementById('wizard-badge-status'),
+  wizardOpenscadPathInput: document.getElementById('wizard-openscad-path-input'),
+  btnWizardSaveSettings: document.getElementById('btn-wizard-save-settings'),
+  wizardErrorMsg: document.getElementById('wizard-error-msg')
 };
 
 // Three.js Variables
@@ -104,7 +115,7 @@ function init3D() {
 
   // Camera
   camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-  camera.position.set(0, 100, 150);
+  camera.position.set(80, 80, 120);
 
   // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -177,7 +188,7 @@ function setupUIListeners() {
     slider.el.addEventListener('input', (e) => {
       const val = e.target.value;
       slider.valEl.textContent = slider.format ? slider.format(val) : val;
-      triggerAutoRender();
+      triggerAutoRender(1000); // 1s delay for sliders
     });
   });
 
@@ -190,8 +201,12 @@ function setupUIListeners() {
   ];
 
   inputs.forEach(input => {
-    input.addEventListener('input', triggerAutoRender);
-    input.addEventListener('change', triggerAutoRender);
+    // If it's a text input, wait 3 seconds after typing to render. Otherwise, 1 second.
+    const isTextInput = input.id && input.id.includes('Text');
+    const delay = isTextInput ? 3000 : 1000;
+    
+    input.addEventListener('input', () => triggerAutoRender(delay));
+    input.addEventListener('change', () => triggerAutoRender(delay));
   });
 
   // Collapsible sections
@@ -260,6 +275,10 @@ function setupUIListeners() {
   elements.btnCloseModal.addEventListener('click', closeSettingsModal);
   elements.btnSaveSettings.addEventListener('click', saveSettings);
   elements.btnToggleTheme.addEventListener('click', toggleTheme);
+  elements.btnResetView.addEventListener('click', resetCameraView);
+
+  // Wizard Setup Control
+  elements.btnWizardSaveSettings.addEventListener('click', saveWizardSettings);
 
   // Hole Position Compass Picker
   const updateHoleControlsVisibility = () => {
@@ -303,17 +322,17 @@ function setupUIListeners() {
 /* ==========================================================================
    MODEL RENDERING & STL LOADING
    ========================================================================== */
-function triggerAutoRender() {
+function triggerAutoRender(delay = 1000) {
   if (!state.openscadConnected) return;
 
   if (state.renderDebounceTimer) {
     clearTimeout(state.renderDebounceTimer);
   }
   
-  // Render automatically 700ms after user finishes editing
+  // Render automatically after the specified delay (in milliseconds)
   state.renderDebounceTimer = setTimeout(() => {
     renderModel(true); // lowResolution = true for faster real-time rendering
-  }, 700);
+  }, delay);
 }
 
 // Get all parameters from HTML inputs
@@ -369,6 +388,36 @@ function getParameters(lowResolution = false) {
   const layoutWidth = layoutRight - layoutLeft;
   const layoutCenter = (layoutLeft + layoutRight) * 0.5;
 
+  const spacing2 = parseFloat(elements.Spacing_L2.value) || 1.1;
+  const spacing3 = parseFloat(elements.Spacing_L3.value) || 1.1;
+
+  const centerY1 = size1 * 0.5;
+  const centerY2 = t2 ? (-size1 * spacing2 + size2 * 0.5) : centerY1;
+  const centerY3 = t3 ? (-(size1 * spacing2 + size2 * spacing3) + size3 * 0.5) : centerY2;
+
+  const holePos = elements.Hole_Position.value || 'left';
+  let holeYCalculated = centerY1;
+
+  if (holePos === 'right') {
+    const r1 = right1;
+    const r2 = t2 ? right2 : -Infinity;
+    const r3 = t3 ? right3 : -Infinity;
+    const maxRight = Math.max(r1, r2, r3);
+    
+    if (maxRight === r1) holeYCalculated = centerY1;
+    else if (maxRight === r2) holeYCalculated = centerY2;
+    else if (maxRight === r3) holeYCalculated = centerY3;
+  } else if (holePos === 'left') {
+    const l1 = left1;
+    const l2 = t2 ? left2 : Infinity;
+    const l3 = t3 ? left3 : Infinity;
+    const minLeft = Math.min(l1, l2, l3);
+    
+    if (minLeft === l1) holeYCalculated = centerY1;
+    else if (minLeft === l2) holeYCalculated = centerY2;
+    else if (minLeft === l3) holeYCalculated = centerY3;
+  }
+
   return {
     Line1_Text: t1,
     Line2_Text: t2,
@@ -383,21 +432,25 @@ function getParameters(lowResolution = false) {
     Offset_L1: off1,
     Offset_L2: off2,
     Offset_L3: off3,
-    Spacing_L2: parseFloat(elements.Spacing_L2.value) || 1.1,
-    Spacing_L3: parseFloat(elements.Spacing_L3.value) || 1.1,
+    Spacing_L2: spacing2,
+    Spacing_L3: spacing3,
     Plate_Height: parseFloat(elements.Plate_Height.value) || 3,
     Text_Height: parseFloat(elements.Text_Height.value) || 2,
     Border_Size: parseFloat(elements.Border_Size.value) || 3,
     Hole_Radius: parseFloat(elements.Hole_Radius.value) || 3,
     Ring_Offset: parseFloat(elements.Ring_Offset.value) || 0,
     Hole_Height_Offset: parseFloat(elements.Hole_Height_Offset.value) || 0,
-    Hole_Position: elements.Hole_Position.value || 'left',
+    Hole_Position: holePos,
     Base_Color: state.baseColor,
     Text_Color: state.textColor,
     Text_Left_Bound: layoutLeft,
     Text_Right_Bound: layoutRight,
     Text_Center_X: layoutCenter,
     Text_Width: layoutWidth,
+    Hole_Y_Calculated: holeYCalculated,
+    Line1_Width: w1,
+    Line2_Width: w2,
+    Line3_Width: w3,
     lowResolution: lowResolution
   };
 }
@@ -501,15 +554,22 @@ function loadStlIntoScene(baseUrl, textUrl) {
       if (state.baseMesh) state.baseMesh.position.sub(center);
       if (state.textMesh) state.textMesh.position.sub(center);
 
-      // Adjust camera to fit combined size
-      const size = new THREE.Vector3();
-      combinedBox.getSize(size);
-      const radius = size.length() / 2;
-      
-      controls.target.set(0, 0, 0);
-      const distance = radius * 2.2;
-      camera.position.set(0, distance * 0.8, distance * 1.2);
-      controls.update();
+      // Adjust camera to fit combined size but only on first render
+      if (!state.cameraInitialized) {
+        const size = new THREE.Vector3();
+        combinedBox.getSize(size);
+        const radius = size.length() / 2;
+        
+        controls.target.set(0, 0, 0);
+        const distance = radius * 2.2;
+        camera.position.set(distance * 0.9, distance * 0.9, distance * 1.3);
+        controls.update();
+        state.cameraInitialized = true;
+      } else {
+        // Just make sure target stays at (0, 0, 0)
+        controls.target.set(0, 0, 0);
+        controls.update();
+      }
     }
   }
 
@@ -546,6 +606,23 @@ function loadStlIntoScene(baseUrl, textUrl) {
   }, undefined, function (error) {
     console.error('Error loading Text STL:', error);
   });
+}
+
+function resetCameraView() {
+  if (!state.baseMesh && !state.textMesh) return;
+  
+  const combinedBox = new THREE.Box3();
+  if (state.baseMesh) combinedBox.expandByObject(state.baseMesh);
+  if (state.textMesh) combinedBox.expandByObject(state.textMesh);
+  
+  const size = new THREE.Vector3();
+  combinedBox.getSize(size);
+  const radius = size.length() / 2;
+  
+  controls.target.set(0, 0, 0);
+  const distance = radius * 2.2;
+  camera.position.set(distance * 0.9, distance * 0.9, distance * 1.3);
+  controls.update();
 }
 
 function updateBaseMeshMaterial() {
@@ -623,6 +700,9 @@ async function download3MF() {
 /* ==========================================================================
    SETTINGS & SYSTEM CONFIG
    ========================================================================== */
+// Keep track of connection attempt polling to prevent duplicate cycles
+let offlinePollTimer = null;
+
 async function checkSystemStatus() {
   try {
     const response = await fetch('/api/settings');
@@ -630,11 +710,22 @@ async function checkSystemStatus() {
     
     state.openscadConnected = data.isInstalled;
     
+    // Clear any active offline poll timers since we are connected to the backend
+    if (offlinePollTimer) {
+      clearTimeout(offlinePollTimer);
+      offlinePollTimer = null;
+    }
+    
     if (data.isInstalled) {
       elements.openscadStatus.className = 'status-badge connected';
       elements.openscadStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> OpenSCAD Conectado';
       elements.warningBanner.classList.add('hidden');
       elements.openscadPathInput.value = data.openscadPath;
+      
+      // Hide setup wizard
+      elements.setupWizard.classList.add('hidden');
+      elements.wizardScreenOffline.classList.add('hidden');
+      elements.wizardScreenOpenscad.classList.add('hidden');
       
       // Auto-render first load preview
       renderModel(false);
@@ -643,17 +734,72 @@ async function checkSystemStatus() {
       elements.openscadStatus.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> OpenSCAD Indisponível';
       elements.warningBanner.classList.remove('hidden');
       elements.btnDownload.disabled = true;
+      elements.btnDownload3mf.disabled = true;
       
-      // Try to suggest first auto-detected path in modal input field
+      // Try to suggest first auto-detected path in modal & wizard input fields
       const autofill = data.autodetectedPaths.find(p => p) || '';
       elements.openscadPathInput.value = autofill;
+      elements.wizardOpenscadPathInput.value = autofill;
+      
+      // Show wizard (OpenSCAD missing screen)
+      elements.setupWizard.classList.remove('hidden');
+      elements.wizardScreenOffline.classList.add('hidden');
+      elements.wizardScreenOpenscad.classList.remove('hidden');
+      elements.wizardBadgeStatus.textContent = 'Sem OpenSCAD';
+      elements.wizardBadgeStatus.className = 'wizard-badge';
     }
   } catch (err) {
     console.error('Error checking backend status:', err);
     elements.openscadStatus.className = 'status-badge disconnected';
     elements.openscadStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Servidor Offline';
+    elements.btnDownload.disabled = true;
+    elements.btnDownload3mf.disabled = true;
+    
+    // Show wizard (Server offline screen)
+    elements.setupWizard.classList.remove('hidden');
+    elements.wizardScreenOffline.classList.remove('hidden');
+    elements.wizardScreenOpenscad.classList.add('hidden');
+    elements.wizardBadgeStatus.textContent = 'Servidor Offline';
+    elements.wizardBadgeStatus.className = 'wizard-badge disconnected';
+    
+    // Poll to check if backend comes online
+    if (!offlinePollTimer) {
+      offlinePollTimer = setTimeout(checkSystemStatus, 3000);
+    }
   }
 }
+
+async function saveWizardSettings() {
+  const pathVal = elements.wizardOpenscadPathInput.value;
+  elements.wizardErrorMsg.classList.add('hidden');
+  
+  elements.btnWizardSaveSettings.disabled = true;
+  elements.btnWizardSaveSettings.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+  
+  try {
+    const response = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ openscadPath: pathVal })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Erro ao validar o executável.');
+    }
+
+    // Success! Update other input field and re-check status
+    elements.openscadPathInput.value = pathVal;
+    await checkSystemStatus();
+  } catch (err) {
+    elements.wizardErrorMsg.textContent = err.message;
+    elements.wizardErrorMsg.classList.remove('hidden');
+  } finally {
+    elements.btnWizardSaveSettings.disabled = false;
+    elements.btnWizardSaveSettings.innerHTML = 'Salvar e Iniciar';
+  }
+}
+
 
 function openSettingsModal() {
   elements.settingsModal.classList.remove('hidden');
@@ -788,4 +934,14 @@ document.addEventListener('DOMContentLoaded', () => {
   setupUIListeners();
   checkSystemStatus();
   loadSystemFonts();
+
+  // Recalculate and re-render when fonts are fully loaded in the browser
+  if (document.fonts) {
+    document.fonts.ready.then(() => {
+      console.log('Browser fonts loaded, auto-updating preview measurements...');
+      if (state.openscadConnected) {
+        renderModel(true);
+      }
+    });
+  }
 });

@@ -445,6 +445,10 @@ Font_Size_L1 = ${parseFloat(params.Font_Size_L1) || 20};
 Font_Size_L2 = ${parseFloat(params.Font_Size_L2) || 20};
 Font_Size_L3 = ${parseFloat(params.Font_Size_L3) || 20};
 
+Line1_Width = ${parseFloat(params.Line1_Width) || 0};
+Line2_Width = ${parseFloat(params.Line2_Width) || 0};
+Line3_Width = ${parseFloat(params.Line3_Width) || 0};
+
 Font_Weight_Steps = ${parseInt(params.Font_Weight_Steps) || 0};
 Font_Weight = Font_Weight_Steps / 10;
 
@@ -456,6 +460,7 @@ Hole_Position = "${(params.Hole_Position || 'left').replace(/"/g, '\\"')}";
 Hole_Radius = ${parseFloat(params.Hole_Radius) || 3};
 Ring_Offset = ${parseFloat(params.Ring_Offset) || 0};
 Hole_Height_Offset = ${parseFloat(params.Hole_Height_Offset) || 0};
+Hole_Y_Calculated = ${parseFloat(params.Hole_Y_Calculated) || 10};
 
 Spacing_L2 = ${parseFloat(params.Spacing_L2) || 1.1};
 Spacing_L3 = ${parseFloat(params.Spacing_L3) || 1.1};
@@ -517,7 +522,11 @@ app.post('/api/render', async (req, res) => {
     Text_Left_Bound = 0,
     Text_Right_Bound = 0,
     Text_Center_X = 0,
-    Text_Width = 0
+    Text_Width = 0,
+    Hole_Y_Calculated = 10,
+    Line1_Width = 0,
+    Line2_Width = 0,
+    Line3_Width = 0
   } = req.body;
 
   // Read template and extract code after parameter block
@@ -569,6 +578,7 @@ app.post('/api/render', async (req, res) => {
     Offset_L1, Offset_L2, Offset_L3,
     Base_Color, Text_Color,
     Text_Left_Bound, Text_Right_Bound, Text_Center_X, Text_Width,
+    Hole_Y_Calculated, Line1_Width, Line2_Width, Line3_Width,
     lowResolution: true
   };
 

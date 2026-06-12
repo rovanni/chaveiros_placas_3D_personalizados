@@ -336,6 +336,7 @@
           <i class="fa-solid fa-circle-notch fa-spin"></i> Verificando OpenSCAD...
         </div>
         <div class="help-links">
+          <button id="btn-reset-view" class="icon-btn" title="Recentralizar Vista"><i class="fa-solid fa-house"></i></button>
           <button id="btn-toggle-theme" class="icon-btn" title="Alternar Tema"><i class="fa-solid fa-sun"></i></button>
           <button id="btn-open-settings" class="icon-btn" title="Configurar OpenSCAD"><i class="fa-solid fa-cog"></i></button>
         </div>
@@ -355,6 +356,73 @@
           <span><i class="fa-solid fa-mouse-pointer"></i> Arraste para Girar</span>
           <span><i class="fa-solid fa-arrows-up-down-left-right"></i> Shift+Arraste para Mover</span>
           <span><i class="fa-solid fa-circle-notch"></i> Scroll para Zoom</span>
+        </div>
+      </div>
+
+      <!-- Setup Wizard Overlay (Visible when server is offline or OpenSCAD is missing) -->
+      <div id="setup-wizard" class="wizard-overlay hidden">
+        <div class="wizard-card">
+          <!-- Wizard header -->
+          <div class="wizard-header">
+            <div class="wizard-logo">
+              <i class="fa-solid fa-cube logo-cube-anim"></i>
+              <div class="logo-text">Chaveiro<span>3D</span></div>
+            </div>
+            <span class="wizard-badge" id="wizard-badge-status">Configuração</span>
+          </div>
+
+          <!-- Wizard Screen 1: Server Offline -->
+          <div id="wizard-screen-offline" class="wizard-screen hidden">
+            <div class="wizard-body">
+              <div class="status-illustration">
+                <i class="fa-solid fa-server offline-icon"></i>
+                <i class="fa-solid fa-circle-xmark status-dot error"></i>
+              </div>
+              <h2>Servidor Local Desconectado</h2>
+              <p>Esta interface precisa do servidor local em execução para gerar a geometria 3D com o OpenSCAD.</p>
+              
+              <div class="wizard-guide-box">
+                <h3><i class="fa-solid fa-play"></i> Como iniciar o sistema:</h3>
+                <ol>
+                  <li>Abra a pasta do projeto no seu computador.</li>
+                  <li>Dê dois cliques no arquivo <strong>Iniciar_Chaveiro3D.bat</strong> para ligar o servidor.</li>
+                  <li>Esta página atualizará automaticamente assim que o servidor estiver online.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wizard Screen 2: OpenSCAD Missing -->
+          <div id="wizard-screen-openscad" class="wizard-screen hidden">
+            <div class="wizard-body">
+              <div class="status-illustration">
+                <i class="fa-solid fa-laptop-code code-icon"></i>
+                <i class="fa-solid fa-triangle-exclamation status-dot warning"></i>
+              </div>
+              <h2>OpenSCAD não encontrado!</h2>
+              <p>O servidor está ativo, mas o compilador 3D <strong>OpenSCAD</strong> não foi localizado no seu computador.</p>
+
+              <div class="wizard-guide-box">
+                <h3><i class="fa-solid fa-download"></i> Passo 1: Instalar o OpenSCAD</h3>
+                <p>O OpenSCAD é gratuito e seguro. Baixe e instale em menos de 1 minuto:</p>
+                <a href="https://openscad.org/downloads.html" target="_blank" class="download-guide-btn">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Baixar OpenSCAD Oficial
+                </a>
+              </div>
+
+              <div class="wizard-guide-box" style="margin-top: 12px;">
+                <h3><i class="fa-solid fa-folder-open"></i> Passo 2: Confirmar o Caminho</h3>
+                <p>Se já instalou, insira o caminho do arquivo <code>openscad.exe</code>:</p>
+                <div class="wizard-input-row">
+                  <input type="text" id="wizard-openscad-path-input" placeholder="Ex: C:\Program Files\OpenSCAD\openscad.exe">
+                  <button id="btn-wizard-save-settings" class="wizard-save-btn">Salvar e Iniciar</button>
+                </div>
+                <span class="wizard-input-hint">No Windows de 64 bits o padrão é: <code>C:\Program Files\OpenSCAD\openscad.exe</code></span>
+                <div id="wizard-error-msg" class="wizard-error hidden"></div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 

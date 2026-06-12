@@ -1128,3 +1128,298 @@ body.light-theme .modal-footer {
   box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
 }
 
+/* ==========================================================================
+   SETUP WIZARD OVERLAY
+   ========================================================================== */
+.wizard-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 8, 17, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 15;
+  padding: 24px;
+  opacity: 1;
+  transition: opacity var(--transition-normal);
+}
+
+.wizard-card {
+  width: 100%;
+  max-width: 520px;
+  background: rgba(20, 24, 48, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), var(--shadow-glow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wizard-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(10, 12, 24, 0.3);
+}
+
+.wizard-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wizard-logo i {
+  font-size: 20px;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.wizard-logo .logo-text {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.wizard-logo .logo-text span {
+  color: var(--accent-secondary);
+}
+
+.wizard-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: rgba(0, 113, 197, 0.15);
+  color: var(--accent-secondary);
+  border: 1px solid rgba(0, 113, 197, 0.3);
+}
+
+.wizard-screen {
+  opacity: 1;
+  transition: opacity var(--transition-normal);
+}
+
+.wizard-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.status-illustration {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.status-illustration i.offline-icon,
+.status-illustration i.code-icon {
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.status-illustration .status-dot {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 22px;
+  border-radius: 50%;
+  background: var(--bg-app);
+}
+
+.status-illustration .status-dot.error {
+  color: #ef4444;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.status-illustration .status-dot.warning {
+  color: #f59e0b;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.wizard-body h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.25px;
+}
+
+.wizard-body p {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.wizard-guide-box {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: left;
+}
+
+.wizard-guide-box h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-secondary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wizard-guide-box p {
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.wizard-guide-box ol {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-left: 20px;
+  line-height: 1.6;
+}
+
+.wizard-guide-box ol li strong {
+  color: var(--text-main);
+}
+
+.download-guide-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gradient-brand);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-glow);
+}
+
+.download-guide-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.wizard-input-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.wizard-input-row input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  transition: all var(--transition-fast);
+}
+
+.wizard-input-row input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.wizard-save-btn {
+  background: var(--gradient-success);
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.wizard-save-btn:hover {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
+}
+
+.wizard-input-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.wizard-input-hint code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.wizard-error {
+  margin-top: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Animations */
+.logo-cube-anim {
+  animation: logoCube 3s ease-in-out infinite;
+}
+
+@keyframes logoCube {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(90deg); }
+  40% { transform: rotate(90deg); }
+  60% { transform: rotate(180deg); }
+  80% { transform: rotate(180deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Light Theme Overrides for Wizard */
+body.light-theme .wizard-overlay {
+  background: rgba(241, 245, 249, 0.85);
+}
+
+body.light-theme .wizard-card {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+}
+
+body.light-theme .wizard-header {
+  background: #f8fafc;
+}
+
+body.light-theme .wizard-guide-box {
+  background: #f8fafc;
+}
+
+body.light-theme .status-illustration i.offline-icon,
+body.light-theme .status-illustration i.code-icon {
+  color: rgba(15, 23, 42, 0.15);
+}
+
+
